@@ -1,18 +1,18 @@
-FROM ubuntu:14.10
-MAINTAINER Rob Haswell <me@robhaswell.co.uk>
+FROM alpine:3.11
+MAINTAINER MFV <devops@moneyforward.vn>
 
-RUN apt-get -qqy update
-RUN apt-get -qqy upgrade
-RUN apt-get -qqy install apache2-utils squid3
+RUN apk add --no-cache \
+    squid \
+    apache2-utils
 
-# If you are prone to gouging your eyes out, do not read the following 2 lines
-RUN sed -i 's@#\tauth_param basic program /usr/lib/squid3/basic_ncsa_auth /usr/etc/passwd@auth_param basic program /usr/lib/squid3/basic_ncsa_auth /usr/etc/passwd\nacl ncsa_users proxy_auth REQUIRED@' /etc/squid3/squid.conf
-RUN sed -i 's@^http_access allow localhost$@\0\nhttp_access allow ncsa_users@' /etc/squid3/squid.conf
+RUN sed -i 's@^http_access allow localhost$@\0\nhttp_access allow ncsa_users@' /etc/squid/squid.conf
+RUN sed -i '1i auth_param basic program /usr/lib/squid/basic_ncsa_auth /usr/etc/passwd\nacl ncsa_users proxy_auth REQUIRED' /etc/squid/squid.conf
+RUN sed -i 's/^http_access allow localnet/# http_access allow localnet/g' /etc/squid/squid.conf
 
 RUN mkdir /usr/etc
 
 EXPOSE 3128
-VOLUME /var/log/squid3
+VOLUME /var/log/squid
 
 ADD init /init
 CMD ["/init"]
